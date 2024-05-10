@@ -61,13 +61,26 @@ async function run() {
       res.send(result);
     });
 
-    // delete ap post by id
-    app.delete("/volunteer_post/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await volunteerCollection.deleteOne(query);
-      res.send(result);
+    // for sorting data by deadline
+    app.get("/sort_post", async (req, res) => {
+      try {
+        const cursor = await volunteerCollection.find();
+        cursor.sort({ deadline: 1 });
+        const result = await cursor.toArray();
+        res.json(result);
+      } catch (error) {
+        console.error("Error:", error);
+        res.status(500).json({ error: "Server error" });
+      }
     });
+
+    // delete ap post by id
+    // app.delete("/volunteer_post/:id", async (req, res) => {
+    //   const id = req.params.id;
+    //   const query = { _id: new ObjectId(id) };
+    //   const result = await volunteerCollection.deleteOne(query);
+    //   res.send(result);
+    // });
 
     // Send a ping to confirm a successful connection
     console.log(
