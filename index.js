@@ -78,13 +78,26 @@ async function run() {
     app.patch("/volunteer_post/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
+      const options = { upset: true };
       const updatePost = req.body;
       const updateDoc = {
         $set: {
-          status: updatePost.status,
+          thumbnail: updatePost.thumbnail,
+          title: updatePost.title,
+          description: updatePost.description,
+          category: updatePost.category,
+          location: updatePost.location,
+          volunteersNeeded: updatePost.volunteersNeeded,
+          deadline: updatePost.deadline,
+          name: updatePost.name,
+          email: updatePost.email,
         },
       };
-      const result = await volunteerCollection.updateOne(filter, updateDoc);
+      const result = await volunteerCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
       res.send(result);
     });
 
