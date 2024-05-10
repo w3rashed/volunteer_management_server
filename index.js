@@ -35,17 +35,28 @@ async function run() {
     // -------------------------------------------------------------volunteer_post api
 
     // get all volunteer_post
-    app.get("/volunteer_post", async (req, res) => {
-      const cursor = volunteerCollection.find();
-      const result = await cursor.toArray();
-      res.send(result);
-    });
+    // app.get("/volunteer_post", async (req, res) => {
+    //   const cursor = volunteerCollection.find();
+    //   const result = await cursor.toArray();
+    //   res.send(result);
+    // });
 
     // get volunteer_post by id
     app.get("/details/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await volunteerCollection.findOne(query);
+      res.send(result);
+    });
+
+    // my post get by email
+    app.get("/volunteer_post", async (req, res) => {
+      console.log(req.query);
+      let query = {};
+      if (req.query?.email) {
+        query = { email: req.query.email };
+      }
+      const result = await volunteerCollection.find(query).toArray();
       res.send(result);
     });
 
