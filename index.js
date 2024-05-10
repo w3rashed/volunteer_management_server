@@ -34,13 +34,6 @@ async function run() {
 
     // -------------------------------------------------------------volunteer_post api
 
-    // get all volunteer_post
-    // app.get("/volunteer_post", async (req, res) => {
-    //   const cursor = volunteerCollection.find();
-    //   const result = await cursor.toArray();
-    //   res.send(result);
-    // });
-
     // get volunteer_post by id
     app.get("/details/:id", async (req, res) => {
       const id = req.params.id;
@@ -65,6 +58,14 @@ async function run() {
       // console.log(req.body);
       const volunteer_post = req.body;
       const result = await volunteerCollection.insertOne(volunteer_post);
+      res.send(result);
+    });
+
+    // delete ap post by id
+    app.delete("/volunteer_post/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await volunteerCollection.deleteOne(query);
       res.send(result);
     });
 
