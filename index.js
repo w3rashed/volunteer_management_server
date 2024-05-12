@@ -130,15 +130,15 @@ async function run() {
     app.patch("/be_volunteer", async (req, res) => {
       const be_volunteer = req.body;
       const result = await beAVolunteerCollection.insertOne(be_volunteer);
-      // res.send(result);
-      console.log(be_volunteer);
+      res.send(result);
     });
+
     // get all be a volunter by user email
     app.get("/be_volunteer", async (req, res) => {
       console.log(req.query);
       let query = {};
       if (req.query?.email) {
-        query = { email: req.query.email };
+        query = { userEmail: req.query.email };
       }
       const result = await beAVolunteerCollection.find(query).toArray();
       res.send(result);
