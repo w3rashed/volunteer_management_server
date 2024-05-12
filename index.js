@@ -44,7 +44,7 @@ async function run() {
 
     // my post get by email
     app.get("/volunteer_post", async (req, res) => {
-      console.log(req.query);
+      // console.log(req.query);
       let query = {};
       if (req.query?.email) {
         query = { email: req.query.email };
@@ -64,10 +64,11 @@ async function run() {
     // for sorting data by deadline
     app.get("/sort_post", async (req, res) => {
       try {
-        const cursor = await volunteerCollection.find();
+        const cursor = volunteerCollection.find();
         cursor.sort({ deadline: 1 });
         const result = await cursor.toArray();
         res.json(result);
+        console.log(result);
       } catch (error) {
         console.error("Error:", error);
         res.status(500).json({ error: "Server error" });
@@ -106,6 +107,19 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await volunteerCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // ------------------------------------------------------------request be a volunteer
+    app.patch("/updateChanges/:id", async (req, res) => {
+      const id = req.params.id;
+      // const data = { _id: new ObjectId(id) };
+      const options = { $inc: { volunteersNeeded: -1 } };
+      const result = await volunteerCollection.updateOne(
+        { _id: new ObjectId(id) },
+        options
+      );
+
       res.send(result);
     });
 
