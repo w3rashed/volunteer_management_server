@@ -32,6 +32,10 @@ async function run() {
       .db("volunteer")
       .collection("volunteer_post");
 
+    const beAVolunteerCollection = client
+      .db("volunteer")
+      .collection("be_a_volunteer");
+
     // -------------------------------------------------------------volunteer_post api
 
     // get volunteer_post by id
@@ -120,6 +124,23 @@ async function run() {
         options
       );
 
+      res.send(result);
+    });
+    // post a volunteer
+    app.patch("/be_volunteer", async (req, res) => {
+      const be_volunteer = req.body;
+      const result = await beAVolunteerCollection.insertOne(be_volunteer);
+      // res.send(result);
+      console.log(be_volunteer);
+    });
+    // get all be a volunter by user email
+    app.get("/be_volunteer", async (req, res) => {
+      console.log(req.query);
+      let query = {};
+      if (req.query?.email) {
+        query = { email: req.query.email };
+      }
+      const result = await beAVolunteerCollection.find(query).toArray();
       res.send(result);
     });
 
