@@ -46,12 +46,16 @@ async function run() {
       res.send(result);
     });
 
-    // my post get by email
+    // my post get by email && serch by title
     app.get("/volunteer_post", async (req, res) => {
       // console.log(req.query);
       let query = {};
       if (req.query?.email) {
         query = { email: req.query.email };
+      }
+      // search operation
+      if (req.query?.title) {
+        query = { title: req.query.title };
       }
       const result = await volunteerCollection.find(query).toArray();
       res.send(result);
@@ -79,7 +83,7 @@ async function run() {
       }
     });
 
-    // update a post
+    // update a post by id
     app.patch("/volunteer_post/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
