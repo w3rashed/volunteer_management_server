@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 var cookieParser = require("cookie-parser");
 const app = express();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const port = process.env.PORT || 5000;
 require("dotenv").config();
 
@@ -21,10 +22,6 @@ app.use(express.json());
 
 // --------------------------------------------cookie middleware
 app.use(cookieParser());
-const logger = (req, res, next) => {
-  console.log("log:info", req.method, req.url);
-  next();
-};
 
 const verifyToken = (req, res, next) => {
   const token = req?.cookies?.token;
@@ -74,7 +71,7 @@ async function run() {
     // add token
     app.post("/jwt", async (req, res) => {
       const user = req.body;
-      console.log("user for token", user);
+      // console.log("user for token", user);
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: "1h",
       });
@@ -90,6 +87,22 @@ async function run() {
         .send({ success: true });
     });
 
+    // --------------------------------------------------------------------payment intent--------------
+    app.post("/create-payment-intent", async (req, res) => {
+      const { price } = req.body;
+      const amount = parseInt(price * 100);
+
+      // Create a PaymentIntent with the order amount and currency
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: calculateOrderAmount(items),
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
+    });
+
     // ----------------------------------------services related api-----------volunteer_post api
 
     // get volunteer_post by id
@@ -100,19 +113,20 @@ async function run() {
       res.send(result);
     });
 
-    // geet all volunteer post
+    // geet all volunteer post and search
     app.get("/all_volunteer_post", async (req, res) => {
+      const filter = req.query.search;
       let query = {};
       // search operation
-      if (req.query?.title) {
-        query = { title: req.query.title };
+      if (filter) {
+        query = { title: { $regex: filter, $options: "i" } };
       }
       const result = await volunteerCollection.find(query).toArray();
       res.send(result);
     });
 
-    // my post get by email && serch by title
-    app.get("/volunteer_post", verifyToken, async (req, res) => {
+    // my post get by email
+    app.get("/volunteer_post", async (req, res) => {
       // console.log(req.query);
       let query = {};
       if (req.query?.email) {
@@ -137,9 +151,9 @@ async function run() {
         cursor.sort({ deadline: 1 });
         const result = await cursor.toArray();
         res.json(result);
-        console.log(result);
+        // console.log(result);
       } catch (error) {
-        console.error("Error:", error);
+        // console.error("Error:", error);
         res.status(500).json({ error: "Server error" });
       }
     });
@@ -172,7 +186,7 @@ async function run() {
     });
 
     // // delete a post by id
-    app.delete("/volunteer_post/:id", async (req, res) => {
+    app.delete("/volunteer_post/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await volunteerCollection.deleteOne(query);
@@ -203,14 +217,14 @@ async function run() {
       res.send(result);
     });
     // post a volunteer
-    app.patch("/be_volunteer", async (req, res) => {
+    app.patch("/be_volunteer", verifyToken, async (req, res) => {
       const be_volunteer = req.body;
       const result = await beAVolunteerCollection.insertOne(be_volunteer);
       res.send(result);
     });
 
     // get all be a volunter by user email
-    app.get("/be_volunteer", verifyToken, async (req, res) => {
+    app.get("/be_volunteer", async (req, res) => {
       console.log(req.query);
       let query = {};
       if (req.query?.email) {
@@ -219,7 +233,7 @@ async function run() {
       const result = await beAVolunteerCollection.find(query).toArray();
       res.send(result);
     });
-    app.delete("/be_volunteer/:id", async (req, res) => {
+    app.delete("/be_volunteer/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await beAVolunteerCollection.deleteOne(query);
